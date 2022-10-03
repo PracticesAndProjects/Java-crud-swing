@@ -1,0 +1,20 @@
+<component name="libraryTable">
+  <library name="jdbc">
+    <CLASSES>
+      <root url="file://$USER_HOME$/Downloads/sqljdbc_11.2.0.0_ptb/sqljdbc_11.2/ptb" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES>
+      <root url="file://$USER_HOME$/Downloads/sqljdbc_11.2.0.0_ptb/sqljdbc_11.2/ptb/samples/adaptive" />
+      <root url="file://$USER_HOME$/Downloads/sqljdbc_11.2.0.0_ptb/sqljdbc_11.2/ptb/samples/alwaysencrypted" />
+      <root url="file://$USER_HOME$/Downloads/sqljdbc_11.2.0.0_ptb/sqljdbc_11.2/ptb/samples/azureactivedirectoryauthentication" />
+      <root url="file://$USER_HOME$/Downloads/sqljdbc_11.2.0.0_ptb/sqljdbc_11.2/ptb/samples/connections" />
+      <root url="file://$USER_HOME$/Downloads/sqljdbc_11.2.0.0_ptb/sqljdbc_11.2/ptb/samples/constrained" />
+      <root url="file://$USER_HOME$/Downloads/sqljdbc_11.2.0.0_ptb/sqljdbc_11.2/ptb/samples/dataclassification" />
+      <root url="file://$USER_HOME$/Downloads/sqljdbc_11.2.0.0_ptb/sqljdbc_11.2/ptb/samples/datatypes" />
+      <root url="file://$USER_HOME$/Downloads/sqljdbc_11.2.0.0_ptb/sqljdbc_11.2/ptb/samples/resultsets" />
+      <root url="file://$USER_HOME$/Downloads/sqljdbc_11.2.0.0_ptb/sqljdbc_11.2/ptb/samples/sparse" />
+    </SOURCES>
+    <jarDirectory url="file://$USER_HOME$/Downloads/sqljdbc_11.2.0.0_ptb/sqljdbc_11.2/ptb" recursive="false" />
+  </library>
+</component>
