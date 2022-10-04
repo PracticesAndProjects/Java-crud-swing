@@ -1,11 +1,13 @@
 package services;
 
+import models.Endereco;
 import repository.EnderecoRepository;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class EnderecoService {
 
@@ -19,37 +21,45 @@ public class EnderecoService {
 			this.dados.addColumn("UF");
 			table.setModel(dados);
 			table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		} catch (Exception exception){
+		} catch (Exception exception) {
 			exception.printStackTrace();
 			showErrorMessage("Não foi possível construir o modelo da tabela!");
 		}
 	}
 
+	public boolean createAddress(Endereco endereco){
+		Endereco createdAddress = this.enderecoRepository.createAddress(endereco);
+
+		try{
+			if (createdAddress == null) throw new Exception();
+
+			dados.addRow(endereco.getModelObject());
+			return true;
+		}catch (Exception exception){
+			exception.printStackTrace();
+			showErrorMessage("Não foi possível adicionar um novo endereço");
+			return false;
+		}
+
+	}
+
 	public void searchAddress(String searchParam) {
-		ResultSet result = enderecoRepository.searchAdress(searchParam);
+		List<Endereco> list = enderecoRepository.searchAdress(searchParam);
 
-		if (result == null) {
-			showErrorMessage("Falha ao pesquisar registros");
-		} else {
-			dados.setRowCount(0);
-			try {
-				while (result.next()) {
-					String[] rowToAdd = {
-						 result.getString("CEP"),
-						 /* TODO: Refatorar para montar uma lista de Endereco no repository e receber aqui */
-						 result.getString("RUA"),
-						 result.getString("BAIRRO"),
-						 result.getString("CIDADE"),
-						 result.getString("UF"),
-						 };
-					dados.addRow(rowToAdd);
+		try {
+			if (list == null) {
+				throw new Exception();
+			} else {
+				dados.setRowCount(0);
+
+				for (Endereco item : list
+				) {
+					dados.addRow(item.getModelObject());
 				}
-					result.close();
-			} catch (SQLException exception) {
-				exception.printStackTrace();
-				showErrorMessage("Falha ao pesquisar registros");
 			}
-
+		} catch (Exception exception) {
+			exception.printStackTrace();
+			showErrorMessage("Falha ao pesquisar registros");
 		}
 	}
 

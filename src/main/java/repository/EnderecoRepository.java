@@ -5,6 +5,8 @@ import models.Endereco;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EnderecoRepository {
 
@@ -38,7 +40,7 @@ public class EnderecoRepository {
 		closeConnection(conn);
 	}
 
-	public ResultSet searchAdress(String querySearch) {
+	public List<Endereco> searchAdress(String querySearch) {
 		Connection conn = openConnection();
 		try {
 			if (conn == null) return null;
@@ -46,13 +48,17 @@ public class EnderecoRepository {
 				 "SELECT * FROM endereco e WHERE e.RUA LIKE CONCAT('%', ?, '%')"
 			);
 			statement.setString(1, querySearch);
-			ResultSet resultSet = statement.executeQuery();
-//			statement.close();
-			return resultSet;
+			ResultSet      resultSet = statement.executeQuery();
+			List<Endereco> r         = this.serializeResultSet(resultSet);
+			statement.close();
+			resultSet.close();
+			return r;
 		} catch (SQLException ex) {
 			System.out.println(ex.getMessage());
+			closeConnection(conn);
+		} finally {
+			closeConnection(conn);
 		}
-		closeConnection(conn);
 		return null;
 	}
 
@@ -74,7 +80,7 @@ public class EnderecoRepository {
 		closeConnection(conn);
 	}
 
-	public boolean createAddress(DefaultTableModel dados, Endereco endereco) {
+	public Endereco createAddress(Endereco endereco) {
 		Connection conn = openConnection();
 		try {
 			PreparedStatement statement = conn.prepareStatement(
@@ -88,18 +94,21 @@ public class EnderecoRepository {
 			statement.setString(5, endereco.getUf());
 
 			int result = statement.executeUpdate();
-			dados.addRow(endereco.getModelObject());
-			statement.close();
+			if(result > 0){
+				return endereco;
+			} else {
+				statement.close();
+				return null;
+			}
 		} catch (SQLException ex) {
 			if (ex.getSQLState().startsWith("23")) {
 				JOptionPane.showMessageDialog(null, "CEP já existe!", "Erro", JOptionPane.ERROR_MESSAGE);
 			}
 			JOptionPane.showMessageDialog(null, "Erro ao tentar inserir no banco de dados!", "Erro",
 				 JOptionPane.ERROR_MESSAGE);
-			return true;
 		}
 		closeConnection(conn);
-		return false;
+		return null;
 	}
 
 	public boolean patchAddress(DefaultTableModel dados, Endereco endereco, int selectedRow) {
@@ -170,6 +179,26 @@ public class EnderecoRepository {
 		} catch (SQLException |
 			 ClassNotFoundException ex) {
 			System.out.println(ex.getMessage());
+			return null;
+		}
+	}
+
+	private List<Endereco> serializeResultSet(ResultSet rs) {
+		try {
+			List<Endereco> list = new ArrayList<>();
+			while (rs.next()) {
+				Endereco end = new Endereco(
+					 rs.getString(1),
+					 rs.getString(2),
+					 rs.getString(3),
+					 rs.getString(4),
+					 rs.getString(5)
+				);
+				list.add(end);
+			}
+			return list;
+		} catch (Exception exception) {
+			exception.printStackTrace();
 			return null;
 		}
 	}
