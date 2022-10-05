@@ -81,20 +81,24 @@ public class MainScreen {
 				int selectedRow = mainTable.getSelectedRow();
 
 				if (selectedRow == -1) {
-					JOptionPane.showMessageDialog(null, "No row selected");
+					JOptionPane.showMessageDialog(null, "Selecione uma linha!");
 					return;
 				}
 
 				/* Abre modal de confirmação e salva o valor selecionado em
 				uma var */
-				Integer confirmationResult =
+				int confirmationResult =
 					 JOptionPane.showConfirmDialog(null, "O registro selecionado " +
 						  "será deletado, você tem certeza disso ?");
 
 				/* Deleta o registro se for selecionado "sim" */
 				if (confirmationResult == 0) {
-					enderecoRepository.deleteAddress(dados, selectedRow);
-					JOptionPane.showMessageDialog(null, "Linha removida com sucesso!", "Exclusão de dados", 1);
+					try {
+						enderecoService.deleteAddress(dados, selectedRow);
+						JOptionPane.showMessageDialog(null, "Linha removida com sucesso!", "Exclusão de dados", JOptionPane.INFORMATION_MESSAGE);
+					} catch (Exception ex) {
+						JOptionPane.showMessageDialog(null, "Não foi possível remover a linha", "Exclusão de dados", JOptionPane.ERROR_MESSAGE);
+					}
 				}
 			}
 		});
@@ -114,13 +118,7 @@ public class MainScreen {
 					JOptionPane.showMessageDialog(null, "No row selected");
 					return;
 				}
-				Endereco enderecoToEdit = new Endereco(
-					 (String) dados.getValueAt(selectedRow, 0),
-					 (String) dados.getValueAt(selectedRow, 1),
-					 (String) dados.getValueAt(selectedRow, 2),
-					 (String) dados.getValueAt(selectedRow, 3),
-					 (String) dados.getValueAt(selectedRow, 4)
-				);
+				Endereco enderecoToEdit = new Endereco(dados, selectedRow);
 
 				dataInserterScreen.setFieldsOnEdit(enderecoToEdit);
 				dataInsertionFrame.setTitle("Edição de registro");
@@ -256,4 +254,5 @@ public class MainScreen {
 	public JComponent $$$getRootComponent$$$() {
 		return mainPanel;
 	}
+
 }

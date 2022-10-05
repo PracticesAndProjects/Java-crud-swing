@@ -65,6 +65,11 @@ public class EnderecoService {
 
 	;
 
+	public void deleteAddress(DefaultTableModel dados, int selectedRow) throws Exception {
+		Endereco endToDelete = new Endereco(dados, selectedRow);
+		enderecoRepository.deleteAddress(endToDelete);
+		dados.removeRow(selectedRow);
+	}
 
 	public void showErrorMessage(String msg) {
 		JOptionPane.showMessageDialog(

@@ -62,22 +62,22 @@ public class EnderecoRepository {
 		return null;
 	}
 
-	public void deleteAddress(DefaultTableModel dados, int rowToDelete) {
+	public void deleteAddress(Endereco endereco) throws Exception {
 		Connection conn = openConnection();
 		try {
-			String cepToDelete = (String) dados.getValueAt(rowToDelete, 0);
 			PreparedStatement statement = conn.prepareStatement(
 				 "DELETE FROM endereco WHERE CEP = ?"
 			);
-			statement.setString(1, cepToDelete);
-			int result = statement.executeUpdate();
-			dados.removeRow(rowToDelete);
+			statement.setString(1, endereco.getCEP());
+			statement.executeUpdate();
 			statement.close();
-		} catch (SQLException ex) {
+		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
+			throw new Exception();
+		} finally {
+			closeConnection(conn);
 		}
 
-		closeConnection(conn);
 	}
 
 	public Endereco createAddress(Endereco endereco) {

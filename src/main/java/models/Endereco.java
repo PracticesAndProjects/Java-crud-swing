@@ -1,5 +1,7 @@
 package models;
 
+import javax.swing.table.DefaultTableModel;
+
 public class Endereco {
 
 	private String CEP;
@@ -19,6 +21,17 @@ public class Endereco {
 			 };
 	}
 
+	public boolean isInvalid(){
+		Object[] array = this.getModelObject();
+
+		for (Object item:
+		array ) {
+			if (item.equals("")){
+				return true;
+			}
+		}
+		return false;
+	}
 
 	/* CONSTRUTOR */
 	public Endereco(String CEP, String rua, String bairro, String cidade, String uf) {
@@ -27,6 +40,18 @@ public class Endereco {
 		this.bairro = bairro;
 		this.cidade = cidade;
 		this.uf = uf;
+	}
+
+	public Endereco(DefaultTableModel dados, int selectedRow) {
+		this.serialize(dados, selectedRow);
+	}
+
+	public void serialize(DefaultTableModel dados, int selectedRow) {
+		this.setCEP((String) dados.getValueAt(selectedRow, 0));
+		this.setRua((String) dados.getValueAt(selectedRow, 1));
+		this.setBairro((String) dados.getValueAt(selectedRow, 2));
+		this.setCidade((String) dados.getValueAt(selectedRow, 3));
+		this.setUf((String) dados.getValueAt(selectedRow, 4));
 	}
 
 	/* SETTERS & GETTERS */

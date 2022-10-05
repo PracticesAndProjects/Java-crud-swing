@@ -25,14 +25,18 @@ public class DataInserterScreen {
 			public void actionPerformed(ActionEvent e) {
 
 				/* Gera objeto com os valores dos inputs*/
-				Endereco endereco = new Endereco(cepField.getText(), ruaField.getText(), bairroField.getText(), cidadeField.getText(), ufField.getText());
+				Endereco endereco = new Endereco(
+					 cepField.getText(),
+					 ruaField.getText(),
+					 bairroField.getText(),
+					 cidadeField.getText(),
+					 ufField.getText()
+				);
 
 				/* Verifica se algum deles está vazio e para a execução, se sim, mostrando aviso */
-				for (Object text : endereco.getModelObject()) {
-					if (text.equals("")) {
-						JOptionPane.showMessageDialog(null, "Campos vazios");
-						return;
-					}
+				if(endereco.isInvalid()){
+					JOptionPane.showMessageDialog(null, "Campos vazios");
+					return;
 				}
 
 				boolean failed;
