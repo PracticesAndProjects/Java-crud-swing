@@ -12,116 +12,112 @@ import java.util.List;
 public class EnderecoService {
 
 
-	public void setTableStructure(JTable table) {
-		try {
-			this.dados.addColumn("CEP");
-			this.dados.addColumn("Rua");
-			this.dados.addColumn("Bairro");
-			this.dados.addColumn("Cidade");
-			this.dados.addColumn("UF");
-			table.setModel(dados);
-			table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		} catch (Exception exception) {
-			exception.printStackTrace();
-			showErrorMessage("Não foi possível construir o modelo da tabela!");
-		}
-	}
+    public void setTableStructure(JTable table) {
+        try {
+            this.dados.addColumn("CEP");
+            this.dados.addColumn("Rua");
+            this.dados.addColumn("Bairro");
+            this.dados.addColumn("Cidade");
+            this.dados.addColumn("UF");
+            table.setModel(dados);
+            table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            showErrorMessage("Não foi possível construir o modelo da tabela!");
+        }
+    }
 
-	public boolean createAddress(Endereco endereco){
-		Endereco createdAddress = this.enderecoRepository.createAddress(endereco);
+    public void createAddress(Endereco endereco) throws Exception {
+        Endereco createdAddress = this.enderecoRepository.createAddress(endereco);
+        dados.addRow(endereco.getModelObject());
+    }
 
-		try{
-			if (createdAddress == null) throw new Exception();
+    public void patchAddress(Endereco endereco) throws Exception {
 
-			dados.addRow(endereco.getModelObject());
-			return true;
-		}catch (Exception exception){
-			exception.printStackTrace();
-			showErrorMessage("Não foi possível adicionar um novo endereço");
-			return false;
-		}
+        enderecoRepository.patchAddress(endereco, selectedRow, dados);
+        endereco.serialize(dados, selectedRow);
 
-	}
+    }
 
-	public void searchAddress(String searchParam) {
-		List<Endereco> list = enderecoRepository.searchAdress(searchParam);
+    public void searchAddress(String searchParam) {
+        List<Endereco> list = enderecoRepository.searchAdress(searchParam);
 
-		try {
-			if (list == null) {
-				throw new Exception();
-			} else {
-				dados.setRowCount(0);
+        try {
+            if (list == null) {
+                throw new Exception();
+            } else {
+                dados.setRowCount(0);
 
-				for (Endereco item : list
-				) {
-					dados.addRow(item.getModelObject());
-				}
-			}
-		} catch (Exception exception) {
-			exception.printStackTrace();
-			showErrorMessage("Falha ao pesquisar registros");
-		}
-	}
+                for (Endereco item : list
+                ) {
+                    dados.addRow(item.getModelObject());
+                }
+            }
+        } catch (Exception exception) {
+            exception.printStackTrace();
+            showErrorMessage("Falha ao pesquisar registros");
+        }
+    }
 
-	;
+    ;
 
-	public void deleteAddress(DefaultTableModel dados, int selectedRow) throws Exception {
-		Endereco endToDelete = new Endereco(dados, selectedRow);
-		enderecoRepository.deleteAddress(endToDelete);
-		dados.removeRow(selectedRow);
-	}
+    public void deleteAddress(DefaultTableModel dados, int selectedRow) throws Exception {
+        Endereco endToDelete = new Endereco(dados, selectedRow);
+        enderecoRepository.deleteAddress(endToDelete);
+        dados.removeRow(selectedRow);
+    }
 
-	public void showErrorMessage(String msg) {
-		JOptionPane.showMessageDialog(
-			 null, msg, "Erro", JOptionPane.ERROR_MESSAGE
-		);
-	}
+    public void showErrorMessage(String msg) {
+        JOptionPane.showMessageDialog(
+                null, msg, "Erro", JOptionPane.ERROR_MESSAGE
+        );
+    }
 
-	public void showWarningMessage(String msg) {
-		JOptionPane.showMessageDialog(
-			 null, msg, "Aviso", JOptionPane.WARNING_MESSAGE
-		);
-	}
+    public void showWarningMessage(String msg) {
+        JOptionPane.showMessageDialog(
+                null, msg, "Aviso", JOptionPane.WARNING_MESSAGE
+        );
+    }
 
-	public void showMessage(String msg) {
-		JOptionPane.showMessageDialog(
-			 null, msg, "Informação", JOptionPane.INFORMATION_MESSAGE
-		);
-	}
+    public void showMessage(String msg) {
+        JOptionPane.showMessageDialog(
+                null, msg, "Informação", JOptionPane.INFORMATION_MESSAGE
+        );
+    }
 
-	private EnderecoRepository enderecoRepository;
-	private int                selectedRow;
-	private DefaultTableModel  dados;
+    private EnderecoRepository enderecoRepository;
+    private int selectedRow;
+    private DefaultTableModel dados;
 
 
-	/* Constructors */
-	public EnderecoService(EnderecoRepository enderecoRepository, DefaultTableModel dados) {
-		this.dados = dados;
-		this.enderecoRepository = enderecoRepository;
-	}
+    /* Constructors */
+    public EnderecoService(EnderecoRepository enderecoRepository, DefaultTableModel dados) {
+        this.dados = dados;
+        this.enderecoRepository = enderecoRepository;
+    }
 
-	/* Getters & Setters */
-	public EnderecoRepository getRepository() {
-		return enderecoRepository;
-	}
+    /* Getters & Setters */
+    public EnderecoRepository getRepository() {
+        return enderecoRepository;
+    }
 
-	public void setRepository(EnderecoRepository enderecoRepository) {
-		this.enderecoRepository = enderecoRepository;
-	}
+    public void setRepository(EnderecoRepository enderecoRepository) {
+        this.enderecoRepository = enderecoRepository;
+    }
 
-	public int getSelectedRow() {
-		return selectedRow;
-	}
+    public int getSelectedRow() {
+        return selectedRow;
+    }
 
-	public void setSelectedRow(int selectedRow) {
-		this.selectedRow = selectedRow;
-	}
+    public void setSelectedRow(int selectedRow) {
+        this.selectedRow = selectedRow;
+    }
 
-	public DefaultTableModel getDados() {
-		return dados;
-	}
+    public DefaultTableModel getDados() {
+        return dados;
+    }
 
-	public void setDados(DefaultTableModel dados) {
-		this.dados = dados;
-	}
+    public void setDados(DefaultTableModel dados) {
+        this.dados = dados;
+    }
 }
