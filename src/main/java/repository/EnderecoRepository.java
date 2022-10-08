@@ -10,6 +10,12 @@ import java.util.List;
 
 public class EnderecoRepository {
 
+	/*
+	 * Todas operações possuem um try-catch que relança uma exceção e elas serão tratadas
+	 * na camada de view ou service para mostrar uma mensagem, dependendo do tipo de
+	 * exceção lançada aqui
+	 * */
+
 	final String DRIVER       = DatabaseConfig.DRIVER;
 	final String DATABASE_URL = DatabaseConfig.DATABASE_URL;
 	final String DB_PASSWORD  = DatabaseConfig.DB_PASSWORD;
@@ -23,19 +29,8 @@ public class EnderecoRepository {
 			statement = conn.prepareStatement(
 				"SELECT * FROM endereco"
 			                                 );
-			ResultSet      resultSet    = statement.executeQuery();
-			List<Endereco> listaInicial = new ArrayList<>();
-			while ( resultSet.next() ) {
-				Endereco endSingular = new Endereco(
-					resultSet.getString("CEP"),
-					resultSet.getString("RUA"),
-					resultSet.getString("BAIRRO"),
-					resultSet.getString("CIDADE"),
-					resultSet.getString("UF")
-				);
-				listaInicial.add(endSingular);
-			}
-			return listaInicial;
+			ResultSet resultSet = statement.executeQuery();
+			return this.serializeResultSet(resultSet);
 		} catch ( SQLException ex ) {
 			System.out.println(ex.getMessage());
 		} finally {
@@ -56,7 +51,6 @@ public class EnderecoRepository {
 			return this.serializeResultSet(resultSet);
 		} catch ( SQLException ex ) {
 			System.out.println(ex.getMessage());
-			closeConnection(conn);
 		} finally {
 			closeConnection(conn);
 		}
@@ -72,7 +66,6 @@ public class EnderecoRepository {
 			                                                   );
 			statement.setString(1, endereco.getCEP());
 			statement.executeUpdate();
-			statement.close();
 		} catch ( Exception ex ) {
 			System.out.println(ex.getMessage());
 			throw new Exception();
@@ -103,7 +96,11 @@ public class EnderecoRepository {
 			}
 			return endereco;
 		} catch ( SQLException ex ) {
-			throw new Exception();
+			if ( ex.getErrorCode() == 2627 ) {
+				throw new SQLIntegrityConstraintViolationException();
+			} else {
+				throw new Exception();
+			}
 		} finally {
 			closeConnection(conn);
 		}

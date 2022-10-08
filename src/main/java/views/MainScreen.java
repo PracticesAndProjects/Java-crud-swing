@@ -74,7 +74,7 @@ public class MainScreen {
 				int selectedRow = mainTable.getSelectedRow();
 
 				if ( selectedRow == -1 ) {
-					enderecoService.showWarningMessage("Selecione uma linha!");
+					enderecoService.showWarningMessage("Selecione um registro!");
 					return;
 				}
 
@@ -109,7 +109,7 @@ public class MainScreen {
 				dataInserterScreen.setSelectedRow(selectedRow);
 
 				if ( selectedRow == -1 ) {
-					enderecoService.showMessage("Nenhum registro selecionado!");
+					enderecoService.showWarningMessage("Selecione um registro!");
 					return;
 				}
 				Endereco enderecoToEdit = new Endereco(dados, selectedRow);
