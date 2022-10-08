@@ -25,6 +25,8 @@ public class StartApp {
 	 *      Package enums - Contém um fake enum (classe com propriedades static)
 	 *      utilizado no modal de confirmação
 	 *
+	 *      >> Scripts DDL localizados em: src/main/resources/database <<
+	 *
 	 *      IDE utilizada: IDEA Intellij Community Edition (Swing UI Designer -> GUI Form)
 	 *
 	 *      >>>     Para modificar os componentes visualmente       <<<
