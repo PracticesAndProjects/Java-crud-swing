@@ -43,10 +43,10 @@ public class Endereco {
 	}
 
 	public Endereco(DefaultTableModel dados, int selectedRow) {
-		this.serialize(dados, selectedRow);
+		this.setDataOnSelectedRow(dados, selectedRow);
 	}
 
-	public void serialize(DefaultTableModel dados, int selectedRow) {
+	public void setDataOnSelectedRow (DefaultTableModel dados, int selectedRow) {
 		this.setCEP((String) dados.getValueAt(selectedRow, 0));
 		this.setRua((String) dados.getValueAt(selectedRow, 1));
 		this.setBairro((String) dados.getValueAt(selectedRow, 2));

@@ -3,7 +3,6 @@ package repository;
 import configurations.DatabaseConfig;
 import models.Endereco;
 
-import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.sql.*;
 import java.util.ArrayList;
@@ -11,69 +10,63 @@ import java.util.List;
 
 public class EnderecoRepository {
 
+	/*
+	 * Todas operações possuem um try-catch que relança uma exceção e elas serão tratadas
+	 * na camada de view ou service para mostrar uma mensagem, dependendo do tipo de
+	 * exceção lançada aqui
+	 * */
+
 	final String DRIVER       = DatabaseConfig.DRIVER;
 	final String DATABASE_URL = DatabaseConfig.DATABASE_URL;
 	final String DB_PASSWORD  = DatabaseConfig.DB_PASSWORD;
 	final String DB_USER      = DatabaseConfig.DB_USER;
 
-	public void getAddressList(DefaultTableModel dados) throws Exception {
-		Connection conn = null;
+	public List<Endereco> getAddressList () throws Exception {
+		Connection        conn      = null;
+		PreparedStatement statement = null;
 		try {
 			conn = openConnection();
-			PreparedStatement statement = conn.prepareStatement(
+			statement = conn.prepareStatement(
 				"SELECT * FROM endereco"
-			);
-			ResultSet resultSet = statement.executeQuery();
-			while (resultSet.next()) {
-				String[] rowToAdd = {
-					resultSet.getString("CEP"),
-					resultSet.getString("RUA"),
-					resultSet.getString("BAIRRO"),
-					resultSet.getString("CIDADE"),
-					resultSet.getString("UF"),
-					};
-
-				dados.addRow(rowToAdd);
-			}
-			statement.close();
-			resultSet.close();
-		} catch (SQLException ex) {
-			System.out.println(ex.getMessage());
-		} finally {
-			closeConnection(conn);
-		}
-	}
-
-	public List<Endereco> searchAdress(String querySearch) throws Exception {
-		Connection conn = null;
-		try {
-			conn = openConnection();
-			PreparedStatement statement = conn.prepareStatement(
-				"SELECT * FROM endereco e WHERE e.RUA LIKE CONCAT('%', ?, '%')"
-			);
-			statement.setString(1, querySearch);
+			                                 );
 			ResultSet resultSet = statement.executeQuery();
 			return this.serializeResultSet(resultSet);
-		} catch (SQLException ex) {
+		} catch ( SQLException ex ) {
 			System.out.println(ex.getMessage());
-			closeConnection(conn);
 		} finally {
 			closeConnection(conn);
 		}
 		return null;
 	}
 
-	public void deleteAddress(Endereco endereco) throws Exception {
+	public List<Endereco> searchAdress (String querySearch) throws Exception {
+		Connection conn = null;
+		try {
+			conn = openConnection();
+			PreparedStatement statement = conn.prepareStatement(
+				"SELECT * FROM endereco e WHERE e.RUA LIKE CONCAT('%', ?, '%')"
+			                                                   );
+			statement.setString(1, querySearch);
+			ResultSet resultSet = statement.executeQuery();
+			return this.serializeResultSet(resultSet);
+		} catch ( SQLException ex ) {
+			System.out.println(ex.getMessage());
+		} finally {
+			closeConnection(conn);
+		}
+		return null;
+	}
+
+	public void deleteAddress (Endereco endereco) throws Exception {
 		Connection conn = null;
 		try {
 			conn = openConnection();
 			PreparedStatement statement = conn.prepareStatement(
 				"DELETE FROM endereco WHERE CEP = ?"
-			);
+			                                                   );
 			statement.setString(1, endereco.getCEP());
 			statement.executeUpdate();
-			statement.close();
-		} catch (Exception ex) {
+		} catch ( Exception ex ) {
 			System.out.println(ex.getMessage());
 			throw new Exception();
 		} finally {
@@ -82,13 +75,13 @@ public class EnderecoRepository {
 
 	}
 
-	public Endereco createAddress(Endereco endereco) throws Exception {
+	public Endereco createAddress (Endereco endereco) throws Exception {
 		Connection conn = null;
 		try {
 			conn = openConnection();
 			PreparedStatement statement = conn.prepareStatement(
 				"INSERT INTO endereco VALUES (?, ?, ?, ?, ?)"
-			);
+			                                                   );
 
 			statement.setString(1, endereco.getCEP());
 			statement.setString(2, endereco.getRua());
@@ -98,18 +91,26 @@ public class EnderecoRepository {
 
 			int result = statement.executeUpdate();
 
-			if (!(result > 0)) {
+			if ( !( result > 0 ) ) {
 				throw new Exception();
 			}
 			return endereco;
-		} catch (SQLException ex) {
-			throw new Exception();
+		} catch ( SQLException ex ) {
+			if ( ex.getErrorCode() == 2627 ) {
+				throw new SQLIntegrityConstraintViolationException();
+			} else {
+				throw new Exception();
+			}
 		} finally {
 			closeConnection(conn);
 		}
 	}
 
-	public void patchAddress(Endereco endereco, int selectedRow, DefaultTableModel dados) throws Exception {
+	public void patchAddress (
+		Endereco endereco,
+		int selectedRow,
+		DefaultTableModel dados
+	                         ) throws Exception {
         /* Declaração das variáveis no escopo fora do try catch para poder trabalhar com eles no
         bloco finally */
 		Connection        conn               = null;
@@ -119,11 +120,11 @@ public class EnderecoRepository {
 			conn = openConnection();
 			statement = conn.prepareStatement(
 				"UPDATE endereco SET CEP = ?, RUA = ?, BAIRRO = ?, CIDADE = ?, UF = ? WHERE CEP = ?"
-			);
+			                                 );
 
 			statementCountCeps = conn.prepareStatement(
 				"SELECT COUNT(*) FROM endereco WHERE CEP = ?"
-			);
+			                                          );
 
 			statementCountCeps.setString(1, endereco.getCEP());
 
@@ -138,30 +139,33 @@ public class EnderecoRepository {
 			doesCepExists.next();
 
 			/* Gera exceção de integridade manualmente pois o JDBC não está lançando esta exceção */
-			if (doesCepExists.getInt(1) > 0 && !(dados.getValueAt(selectedRow, 0).equals(endereco.getCEP()))) {
+			if ( doesCepExists.getInt(1) > 0 && !( dados.getValueAt(
+				selectedRow,
+				0
+			                                                       ).equals(endereco.getCEP()) ) ) {
 				throw new SQLIntegrityConstraintViolationException();
 			}
 			;
 
 			int result = statement.executeUpdate();
-			if (result == 0) {
+			if ( result == 0 ) {
 				throw new SQLException();
 			}
 			statementCountCeps.close();
 			statement.close();
-		} catch (SQLIntegrityConstraintViolationException exception) {
+		} catch ( SQLIntegrityConstraintViolationException exception ) {
 			throw new SQLIntegrityConstraintViolationException();
-		} catch (SQLException exception) {
+		} catch ( SQLException exception ) {
 			throw new SQLException();
 		} finally {
 			closeConnection(conn);
 		}
 	}
 
-	private List<Endereco> serializeResultSet(ResultSet rs) {
+	private List<Endereco> serializeResultSet (ResultSet rs) {
 		try {
 			List<Endereco> list = new ArrayList<>();
-			while (rs.next()) {
+			while ( rs.next() ) {
 				Endereco end = new Endereco(
 					rs.getString(1),
 					rs.getString(2),
@@ -172,28 +176,28 @@ public class EnderecoRepository {
 				list.add(end);
 			}
 			return list;
-		} catch (Exception exception) {
+		} catch ( Exception exception ) {
 			exception.printStackTrace();
 			return null;
 		}
 	}
 
-	private void closeConnection(Connection conn) {
+	private void closeConnection (Connection conn) {
 		try {
-			if (conn != null) {
+			if ( conn != null ) {
 				conn.close();
 			}
-		} catch (SQLException ex) {
+		} catch ( SQLException ex ) {
 			System.out.println(ex.getMessage());
 		}
 	}
 
-	private Connection openConnection() throws Exception {
+	private Connection openConnection () throws Exception {
 		try {
 			Class.forName(DRIVER);
 			return DriverManager.getConnection(DATABASE_URL, DB_USER, DB_PASSWORD);
-		} catch (SQLException |
-			ClassNotFoundException ex) {
+		} catch ( SQLException |
+			ClassNotFoundException ex ) {
 			throw new Exception("Erro de conexão com o banco de dados!");
 		}
 	}
