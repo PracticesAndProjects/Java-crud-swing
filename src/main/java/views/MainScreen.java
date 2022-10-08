@@ -1,4 +1,7 @@
-import extensions.CustomTableModel;
+package views;
+
+import enums.ConfirmDialog;
+import models.CustomTableModel;
 import models.Endereco;
 import repository.EnderecoRepository;
 import services.EnderecoService;
@@ -24,10 +27,7 @@ public class MainScreen {
 	}
 
 
-	////////////////////////////////////////////////////////////////
-	////////////////// Instâncias dos componentes //////////////////
-	//////// Binding delas definidos nos arquivos xml .form ////////
-	////////////////////////////////////////////////////////////////
+	/* Declaração de vars */
 	private JPanel             mainPanel;
 	private JPanel             searchPanel;
 	private JLabel             searchLabel;
@@ -55,16 +55,21 @@ public class MainScreen {
 		enderecoService.setTableStructure(this.mainTable);
 
 		/* Consulta inicial no DB */
-		this.enderecoRepository.getAddressList(dados);
+		try {
+			this.enderecoRepository.getAddressList(dados);
+		} catch (Exception exception) {
+			this.enderecoService.showErrorMessage("Não foi possível fazer a consulta inicial de" +
+				"endereços");
+		}
 
-		/* Evento de adição de registro (Abre novo frame) */
-		addBtn.addActionListener(new ActionListener() { /* Adiciona o listener ao instanciar essa classe */
+		/* Evento de botão de adição de registro */
+		addBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
 				/* Criação do frame de inserção de dados */
 				JFrame dataInsertionFrame = new JFrame("Inserir dados");
 				dataInsertionFrame.setContentPane(new DataInserterScreen(dados, false,
-					 enderecoRepository, enderecoService).getMainPanel());
+					enderecoRepository, enderecoService).getMainPanel());
 				dataInsertionFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
 				dataInsertionFrame.pack();
 				dataInsertionFrame.setLocationRelativeTo(null); // Seta a janela para o meio da tela
@@ -73,7 +78,7 @@ public class MainScreen {
 			}
 		});
 
-		/* Evento de exclusão de registro */
+		/* Evento do botão de exclusão de registro */
 		deleteBtn.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
@@ -81,23 +86,23 @@ public class MainScreen {
 				int selectedRow = mainTable.getSelectedRow();
 
 				if (selectedRow == -1) {
-					JOptionPane.showMessageDialog(null, "Selecione uma linha!");
+					enderecoService.showWarningMessage("Selecione uma linha!");
 					return;
 				}
 
 				/* Abre modal de confirmação e salva o valor selecionado em
 				uma var */
 				int confirmationResult =
-					 JOptionPane.showConfirmDialog(null, "O registro selecionado " +
-						  "será deletado, você tem certeza disso ?");
+					enderecoService.showConfirmationDialog("O registro selecionado " +
+						"será deletado, você tem certeza disso ?");
 
 				/* Deleta o registro se for selecionado "sim" */
-				if (confirmationResult == 0) {
+				if (confirmationResult == ConfirmDialog.SIM) {
 					try {
 						enderecoService.deleteAddress(dados, selectedRow);
-						JOptionPane.showMessageDialog(null, "Linha removida com sucesso!", "Exclusão de dados", JOptionPane.INFORMATION_MESSAGE);
+						enderecoService.showMessage("Linha removida com sucesso!");
 					} catch (Exception ex) {
-						JOptionPane.showMessageDialog(null, "Não foi possível remover a linha", "Exclusão de dados", JOptionPane.ERROR_MESSAGE);
+						enderecoService.showMessage("Não foi possível remover a linha");
 					}
 				}
 			}
@@ -109,13 +114,13 @@ public class MainScreen {
 			public void actionPerformed(ActionEvent e) {
 				JFrame dataInsertionFrame = new JFrame("Inserir dados");
 				DataInserterScreen dataInserterScreen = new DataInserterScreen(dados, true,
-					 enderecoRepository, enderecoService);
+					enderecoRepository, enderecoService);
 
 				int selectedRow = mainTable.getSelectedRow();
 				dataInserterScreen.setSelectedRow(selectedRow);
 
 				if (selectedRow == -1) {
-					JOptionPane.showMessageDialog(null, "No row selected");
+					enderecoService.showMessage("Nenhum registro selecionado!");
 					return;
 				}
 				Endereco enderecoToEdit = new Endereco(dados, selectedRow);
@@ -134,7 +139,12 @@ public class MainScreen {
 		consultarButton.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
-				enderecoService.searchAddress(searchField.getText());
+				try {
+					enderecoService.searchAddress(searchField.getText());
+				} catch (Exception exception) {
+					JOptionPane.showMessageDialog(null, "Não foi possível consultar o banco de " +
+						"dados", "Consulta", JOptionPane.ERROR_MESSAGE);
+				}
 			}
 		});
 
@@ -145,6 +155,11 @@ public class MainScreen {
 		this.dados = new CustomTableModel();
 		this.enderecoRepository = new EnderecoRepository();
 		this.enderecoService = new EnderecoService(this.enderecoRepository, this.dados);
+	}
+
+
+	public JPanel getMainPanel() {
+		return mainPanel;
 	}
 
 	{

@@ -1,4 +1,6 @@
-import extensions.CustomTableModel;
+package views;
+
+import models.CustomTableModel;
 import models.Endereco;
 import repository.EnderecoRepository;
 import services.EnderecoService;
@@ -34,9 +36,10 @@ public class DataInserterScreen {
                         ufField.getText()
                 );
 
-                /* Verifica se algum deles está vazio e para a execução, se sim, mostrando aviso */
+                /* Verifica se algum deles está vazio e para a execução mostrando dialogo de aviso */
                 if (endereco.isInvalid()) {
-                    JOptionPane.showMessageDialog(null, "Campos vazios");
+                    enderecoService.showErrorMessage("Existem campos vazios, preenche todos antes" +
+                        " de tentar novamente");
                     return;
                 }
 
@@ -62,7 +65,7 @@ public class DataInserterScreen {
     }
 
     private void disposeFrame() {
-        /* Procura a janela pai desse panel e faz o dispose da mesma */
+        /* Procura a janela pai desse panel e faz o dispose */
         JFrame topLevel = (JFrame) mainPanel.getTopLevelAncestor();
         topLevel.setVisible(false);
         topLevel.dispose();

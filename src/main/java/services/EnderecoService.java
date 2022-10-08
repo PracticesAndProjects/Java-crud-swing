@@ -12,112 +12,118 @@ import java.util.List;
 public class EnderecoService {
 
 
-    public void setTableStructure(JTable table) {
-        try {
-            this.dados.addColumn("CEP");
-            this.dados.addColumn("Rua");
-            this.dados.addColumn("Bairro");
-            this.dados.addColumn("Cidade");
-            this.dados.addColumn("UF");
-            table.setModel(dados);
-            table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            showErrorMessage("Não foi possível construir o modelo da tabela!");
-        }
-    }
+	public void setTableStructure(JTable table) {
+		try {
+			this.dados.addColumn("CEP");
+			this.dados.addColumn("Rua");
+			this.dados.addColumn("Bairro");
+			this.dados.addColumn("Cidade");
+			this.dados.addColumn("UF");
+			table.setModel(dados);
+			table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+		} catch (Exception exception) {
+			exception.printStackTrace();
+			showErrorMessage("Não foi possível construir o modelo da tabela!");
+		}
+	}
 
-    public void createAddress(Endereco endereco) throws Exception {
-        Endereco createdAddress = this.enderecoRepository.createAddress(endereco);
-        dados.addRow(endereco.getModelObject());
-    }
+	///////////////////////////////////////////////
+	/////////////// OPERAÇÕES CRUD ////////////////
+	///////////////////////////////////////////////
+	public void createAddress(Endereco endereco) throws Exception {
+		Endereco createdAddress = this.enderecoRepository.createAddress(endereco);
+		dados.addRow(endereco.getModelObject());
+	}
 
-    public void patchAddress(Endereco endereco) throws Exception {
+	public void patchAddress(Endereco endereco) throws Exception {
 
-        enderecoRepository.patchAddress(endereco, selectedRow, dados);
-        endereco.serialize(dados, selectedRow);
+		enderecoRepository.patchAddress(endereco, selectedRow, dados);
+		endereco.serialize(dados, selectedRow);
 
-    }
+	}
 
-    public void searchAddress(String searchParam) {
-        List<Endereco> list = enderecoRepository.searchAdress(searchParam);
+	public void searchAddress(String searchParam) throws Exception {
+		List<Endereco> list = enderecoRepository.searchAdress(searchParam);
 
-        try {
-            if (list == null) {
-                throw new Exception();
-            } else {
-                dados.setRowCount(0);
+		if (list == null) {
+			throw new Exception();
+		} else {
+			dados.setRowCount(0);
 
-                for (Endereco item : list
-                ) {
-                    dados.addRow(item.getModelObject());
-                }
-            }
-        } catch (Exception exception) {
-            exception.printStackTrace();
-            showErrorMessage("Falha ao pesquisar registros");
-        }
-    }
+			for (Endereco item : list
+			) {
+				dados.addRow(item.getModelObject());
+			}
+		}
 
-    ;
+	}
 
-    public void deleteAddress(DefaultTableModel dados, int selectedRow) throws Exception {
-        Endereco endToDelete = new Endereco(dados, selectedRow);
-        enderecoRepository.deleteAddress(endToDelete);
-        dados.removeRow(selectedRow);
-    }
+	public void deleteAddress(DefaultTableModel dados, int selectedRow) throws Exception {
+		Endereco endToDelete = new Endereco(dados, selectedRow);
+		enderecoRepository.deleteAddress(endToDelete);
+		dados.removeRow(selectedRow);
+	}
 
-    public void showErrorMessage(String msg) {
-        JOptionPane.showMessageDialog(
-                null, msg, "Erro", JOptionPane.ERROR_MESSAGE
-        );
-    }
-
-    public void showWarningMessage(String msg) {
-        JOptionPane.showMessageDialog(
-                null, msg, "Aviso", JOptionPane.WARNING_MESSAGE
-        );
-    }
-
-    public void showMessage(String msg) {
-        JOptionPane.showMessageDialog(
-                null, msg, "Informação", JOptionPane.INFORMATION_MESSAGE
-        );
-    }
-
-    private EnderecoRepository enderecoRepository;
-    private int selectedRow;
-    private DefaultTableModel dados;
+	///////////////////////////////////////////////
+	///////////// FIM OPERAÇÕES CRUD //////////////
+	///////////////////////////////////////////////
 
 
-    /* Constructors */
-    public EnderecoService(EnderecoRepository enderecoRepository, DefaultTableModel dados) {
-        this.dados = dados;
-        this.enderecoRepository = enderecoRepository;
-    }
+	/* Métodos helpers */
+	public void showErrorMessage(String msg) {
+		JOptionPane.showMessageDialog(
+			null, msg, "Erro", JOptionPane.ERROR_MESSAGE
+		);
+	}
+	public void showWarningMessage(String msg) {
+		JOptionPane.showMessageDialog(
+			null, msg, "Aviso", JOptionPane.WARNING_MESSAGE
+		);
+	}
+	public void showMessage(String msg) {
+		JOptionPane.showMessageDialog(
+			null, msg, "Informação", JOptionPane.INFORMATION_MESSAGE
+		);
+	}
+	public int showConfirmationDialog(String msg){
+		return JOptionPane.showConfirmDialog(null, msg);
+	}
 
-    /* Getters & Setters */
-    public EnderecoRepository getRepository() {
-        return enderecoRepository;
-    }
 
-    public void setRepository(EnderecoRepository enderecoRepository) {
-        this.enderecoRepository = enderecoRepository;
-    }
 
-    public int getSelectedRow() {
-        return selectedRow;
-    }
+	private EnderecoRepository enderecoRepository;
+	private int                selectedRow;
+	private DefaultTableModel  dados;
 
-    public void setSelectedRow(int selectedRow) {
-        this.selectedRow = selectedRow;
-    }
 
-    public DefaultTableModel getDados() {
-        return dados;
-    }
+	/* Constructors */
+	public EnderecoService(EnderecoRepository enderecoRepository, DefaultTableModel dados) {
+		this.dados = dados;
+		this.enderecoRepository = enderecoRepository;
+	}
 
-    public void setDados(DefaultTableModel dados) {
-        this.dados = dados;
-    }
+	/* Getters & Setters */
+	public EnderecoRepository getRepository() {
+		return enderecoRepository;
+	}
+
+	public void setRepository(EnderecoRepository enderecoRepository) {
+		this.enderecoRepository = enderecoRepository;
+	}
+
+	public int getSelectedRow() {
+		return selectedRow;
+	}
+
+	public void setSelectedRow(int selectedRow) {
+		this.selectedRow = selectedRow;
+	}
+
+	public DefaultTableModel getDados() {
+		return dados;
+	}
+
+	public void setDados(DefaultTableModel dados) {
+		this.dados = dados;
+	}
 }
