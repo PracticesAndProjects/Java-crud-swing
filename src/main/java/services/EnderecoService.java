@@ -1,11 +1,13 @@
 package services;
 
+import models.Endereco;
 import repository.EnderecoRepository;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.List;
 
 public class EnderecoService {
 
@@ -19,60 +21,75 @@ public class EnderecoService {
 			this.dados.addColumn("UF");
 			table.setModel(dados);
 			table.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-		} catch (Exception exception){
+		} catch (Exception exception) {
 			exception.printStackTrace();
 			showErrorMessage("Não foi possível construir o modelo da tabela!");
 		}
 	}
 
-	public void searchAddress(String searchParam) {
-		ResultSet result = enderecoRepository.searchAdress(searchParam);
+	///////////////////////////////////////////////
+	/////////////// OPERAÇÕES CRUD ////////////////
+	///////////////////////////////////////////////
+	public void createAddress(Endereco endereco) throws Exception {
+		Endereco createdAddress = this.enderecoRepository.createAddress(endereco);
+		dados.addRow(endereco.getModelObject());
+	}
 
-		if (result == null) {
-			showErrorMessage("Falha ao pesquisar registros");
+	public void patchAddress(Endereco endereco) throws Exception {
+
+		enderecoRepository.patchAddress(endereco, selectedRow, dados);
+		endereco.serialize(dados, selectedRow);
+
+	}
+
+	public void searchAddress(String searchParam) throws Exception {
+		List<Endereco> list = enderecoRepository.searchAdress(searchParam);
+
+		if (list == null) {
+			throw new Exception();
 		} else {
 			dados.setRowCount(0);
-			try {
-				while (result.next()) {
-					String[] rowToAdd = {
-						 result.getString("CEP"),
-						 /* TODO: Refatorar para montar uma lista de Endereco no repository e receber aqui */
-						 result.getString("RUA"),
-						 result.getString("BAIRRO"),
-						 result.getString("CIDADE"),
-						 result.getString("UF"),
-						 };
-					dados.addRow(rowToAdd);
-				}
-					result.close();
-			} catch (SQLException exception) {
-				exception.printStackTrace();
-				showErrorMessage("Falha ao pesquisar registros");
-			}
 
+			for (Endereco item : list
+			) {
+				dados.addRow(item.getModelObject());
+			}
 		}
+
 	}
 
-	;
+	public void deleteAddress(DefaultTableModel dados, int selectedRow) throws Exception {
+		Endereco endToDelete = new Endereco(dados, selectedRow);
+		enderecoRepository.deleteAddress(endToDelete);
+		dados.removeRow(selectedRow);
+	}
+
+	///////////////////////////////////////////////
+	///////////// FIM OPERAÇÕES CRUD //////////////
+	///////////////////////////////////////////////
 
 
+	/* Métodos helpers */
 	public void showErrorMessage(String msg) {
 		JOptionPane.showMessageDialog(
-			 null, msg, "Erro", JOptionPane.ERROR_MESSAGE
+			null, msg, "Erro", JOptionPane.ERROR_MESSAGE
 		);
 	}
-
 	public void showWarningMessage(String msg) {
 		JOptionPane.showMessageDialog(
-			 null, msg, "Aviso", JOptionPane.WARNING_MESSAGE
+			null, msg, "Aviso", JOptionPane.WARNING_MESSAGE
 		);
 	}
-
 	public void showMessage(String msg) {
 		JOptionPane.showMessageDialog(
-			 null, msg, "Informação", JOptionPane.INFORMATION_MESSAGE
+			null, msg, "Informação", JOptionPane.INFORMATION_MESSAGE
 		);
 	}
+	public int showConfirmationDialog(String msg){
+		return JOptionPane.showConfirmDialog(null, msg);
+	}
+
+
 
 	private EnderecoRepository enderecoRepository;
 	private int                selectedRow;

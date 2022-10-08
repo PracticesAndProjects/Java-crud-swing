@@ -1,32 +1,37 @@
 package repository;
 
+import configurations.DatabaseConfig;
 import models.Endereco;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.sql.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EnderecoRepository {
 
-	final String DRIVER       = "com.microsoft.sqlserver.jdbc.SQLServerDriver";
-	final String DATABASE_URL = "jdbc:sqlserver://localhost:1433;databaseName=enderecos;" +
-		 "encrypt=false";
+	final String DRIVER       = DatabaseConfig.DRIVER;
+	final String DATABASE_URL = DatabaseConfig.DATABASE_URL;
+	final String DB_PASSWORD  = DatabaseConfig.DB_PASSWORD;
+	final String DB_USER      = DatabaseConfig.DB_USER;
 
-	public void getAddressList(DefaultTableModel dados) {
-		Connection conn = openConnection();
+	public void getAddressList(DefaultTableModel dados) throws Exception {
+		Connection conn = null;
 		try {
+			conn = openConnection();
 			PreparedStatement statement = conn.prepareStatement(
-				 "SELECT * FROM endereco"
+				"SELECT * FROM endereco"
 			);
 			ResultSet resultSet = statement.executeQuery();
 			while (resultSet.next()) {
 				String[] rowToAdd = {
-					 resultSet.getString("CEP"),
-					 resultSet.getString("RUA"),
-					 resultSet.getString("BAIRRO"),
-					 resultSet.getString("CIDADE"),
-					 resultSet.getString("UF"),
-					 };
+					resultSet.getString("CEP"),
+					resultSet.getString("RUA"),
+					resultSet.getString("BAIRRO"),
+					resultSet.getString("CIDADE"),
+					resultSet.getString("UF"),
+					};
 
 				dados.addRow(rowToAdd);
 			}
@@ -34,51 +39,55 @@ public class EnderecoRepository {
 			resultSet.close();
 		} catch (SQLException ex) {
 			System.out.println(ex.getMessage());
+		} finally {
+			closeConnection(conn);
 		}
-		closeConnection(conn);
 	}
 
-	public ResultSet searchAdress(String querySearch) {
-		Connection conn = openConnection();
+	public List<Endereco> searchAdress(String querySearch) throws Exception {
+		Connection conn = null;
 		try {
-			if (conn == null) return null;
+			conn = openConnection();
 			PreparedStatement statement = conn.prepareStatement(
-				 "SELECT * FROM endereco e WHERE e.RUA LIKE CONCAT('%', ?, '%')"
+				"SELECT * FROM endereco e WHERE e.RUA LIKE CONCAT('%', ?, '%')"
 			);
 			statement.setString(1, querySearch);
 			ResultSet resultSet = statement.executeQuery();
-//			statement.close();
-			return resultSet;
+			return this.serializeResultSet(resultSet);
 		} catch (SQLException ex) {
 			System.out.println(ex.getMessage());
+			closeConnection(conn);
+		} finally {
+			closeConnection(conn);
 		}
-		closeConnection(conn);
 		return null;
 	}
 
-	public void deleteAddress(DefaultTableModel dados, int rowToDelete) {
-		Connection conn = openConnection();
+	public void deleteAddress(Endereco endereco) throws Exception {
+		Connection conn = null;
 		try {
-			String cepToDelete = (String) dados.getValueAt(rowToDelete, 0);
+			conn = openConnection();
 			PreparedStatement statement = conn.prepareStatement(
-				 "DELETE FROM endereco WHERE CEP = ?"
+				"DELETE FROM endereco WHERE CEP = ?"
 			);
-			statement.setString(1, cepToDelete);
-			int result = statement.executeUpdate();
-			dados.removeRow(rowToDelete);
+			statement.setString(1, endereco.getCEP());
+			statement.executeUpdate();
 			statement.close();
-		} catch (SQLException ex) {
+		} catch (Exception ex) {
 			System.out.println(ex.getMessage());
+			throw new Exception();
+		} finally {
+			closeConnection(conn);
 		}
 
-		closeConnection(conn);
 	}
 
-	public boolean createAddress(DefaultTableModel dados, Endereco endereco) {
-		Connection conn = openConnection();
+	public Endereco createAddress(Endereco endereco) throws Exception {
+		Connection conn = null;
 		try {
+			conn = openConnection();
 			PreparedStatement statement = conn.prepareStatement(
-				 "INSERT INTO endereco VALUES (?, ?, ?, ?, ?)"
+				"INSERT INTO endereco VALUES (?, ?, ?, ?, ?)"
 			);
 
 			statement.setString(1, endereco.getCEP());
@@ -88,29 +97,32 @@ public class EnderecoRepository {
 			statement.setString(5, endereco.getUf());
 
 			int result = statement.executeUpdate();
-			dados.addRow(endereco.getModelObject());
-			statement.close();
-		} catch (SQLException ex) {
-			if (ex.getSQLState().startsWith("23")) {
-				JOptionPane.showMessageDialog(null, "CEP já existe!", "Erro", JOptionPane.ERROR_MESSAGE);
+
+			if (!(result > 0)) {
+				throw new Exception();
 			}
-			JOptionPane.showMessageDialog(null, "Erro ao tentar inserir no banco de dados!", "Erro",
-				 JOptionPane.ERROR_MESSAGE);
-			return true;
+			return endereco;
+		} catch (SQLException ex) {
+			throw new Exception();
+		} finally {
+			closeConnection(conn);
 		}
-		closeConnection(conn);
-		return false;
 	}
 
-	public boolean patchAddress(DefaultTableModel dados, Endereco endereco, int selectedRow) {
-		Connection conn = openConnection();
+	public void patchAddress(Endereco endereco, int selectedRow, DefaultTableModel dados) throws Exception {
+        /* Declaração das variáveis no escopo fora do try catch para poder trabalhar com eles no
+        bloco finally */
+		Connection        conn               = null;
+		PreparedStatement statement          = null;
+		PreparedStatement statementCountCeps = null;
 		try {
-			PreparedStatement statement = conn.prepareStatement(
-				 "UPDATE endereco SET CEP = ?, RUA = ?, BAIRRO = ?, CIDADE = ?, UF = ? WHERE CEP = ?"
+			conn = openConnection();
+			statement = conn.prepareStatement(
+				"UPDATE endereco SET CEP = ?, RUA = ?, BAIRRO = ?, CIDADE = ?, UF = ? WHERE CEP = ?"
 			);
 
-			PreparedStatement statementCountCeps = conn.prepareStatement(
-				 "SELECT COUNT(*) FROM endereco WHERE CEP = ?"
+			statementCountCeps = conn.prepareStatement(
+				"SELECT COUNT(*) FROM endereco WHERE CEP = ?"
 			);
 
 			statementCountCeps.setString(1, endereco.getCEP());
@@ -122,35 +134,48 @@ public class EnderecoRepository {
 			statement.setString(5, endereco.getUf());
 			statement.setString(6, endereco.getCEP());
 
-			ResultSet resultCepExists = statementCountCeps.executeQuery();
-			resultCepExists.next();
-			if (resultCepExists.getInt(1) > 0 && !(dados.getValueAt(selectedRow, 0).equals(endereco.getCEP()))) {
+			ResultSet doesCepExists = statementCountCeps.executeQuery();
+			doesCepExists.next();
+
+			/* Gera exceção de integridade manualmente pois o JDBC não está lançando esta exceção */
+			if (doesCepExists.getInt(1) > 0 && !(dados.getValueAt(selectedRow, 0).equals(endereco.getCEP()))) {
 				throw new SQLIntegrityConstraintViolationException();
 			}
 			;
 
 			int result = statement.executeUpdate();
-
 			if (result == 0) {
 				throw new SQLException();
 			}
-
-			int i = 0;
-			for (Object text : endereco.getModelObject()) {
-				dados.setValueAt(text, selectedRow, i);
-				i++;
-			}
+			statementCountCeps.close();
 			statement.close();
 		} catch (SQLIntegrityConstraintViolationException exception) {
-			JOptionPane.showMessageDialog(null, "CEP já existe!", "Erro", JOptionPane.ERROR_MESSAGE);
-			return true;
+			throw new SQLIntegrityConstraintViolationException();
 		} catch (SQLException exception) {
-			JOptionPane.showMessageDialog(null, "Erro ao tentar inserir no banco de dados!", "Erro",
-				 JOptionPane.ERROR_MESSAGE);
-			return true;
+			throw new SQLException();
+		} finally {
+			closeConnection(conn);
 		}
-		closeConnection(conn);
-		return false;
+	}
+
+	private List<Endereco> serializeResultSet(ResultSet rs) {
+		try {
+			List<Endereco> list = new ArrayList<>();
+			while (rs.next()) {
+				Endereco end = new Endereco(
+					rs.getString(1),
+					rs.getString(2),
+					rs.getString(3),
+					rs.getString(4),
+					rs.getString(5)
+				);
+				list.add(end);
+			}
+			return list;
+		} catch (Exception exception) {
+			exception.printStackTrace();
+			return null;
+		}
 	}
 
 	private void closeConnection(Connection conn) {
@@ -163,14 +188,14 @@ public class EnderecoRepository {
 		}
 	}
 
-	private Connection openConnection() {
+	private Connection openConnection() throws Exception {
 		try {
 			Class.forName(DRIVER);
-			return DriverManager.getConnection(DATABASE_URL, "sa", "123456");
+			return DriverManager.getConnection(DATABASE_URL, DB_USER, DB_PASSWORD);
 		} catch (SQLException |
-			 ClassNotFoundException ex) {
-			System.out.println(ex.getMessage());
-			return null;
+			ClassNotFoundException ex) {
+			throw new Exception("Erro de conexão com o banco de dados!");
 		}
 	}
+
 }
