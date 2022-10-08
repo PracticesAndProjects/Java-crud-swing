@@ -5,8 +5,6 @@ import repository.EnderecoRepository;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.util.List;
 
 public class EnderecoService {
@@ -30,16 +28,21 @@ public class EnderecoService {
 	///////////////////////////////////////////////
 	/////////////// OPERAÇÕES CRUD ////////////////
 	///////////////////////////////////////////////
+	public void getAddressList(DefaultTableModel dados) throws Exception {
+		List<Endereco> listaInicial = enderecoRepository.getAddressList();
+		for(Endereco endereco : listaInicial){
+			dados.addRow(endereco.getModelObject());
+		}
+	}
+
 	public void createAddress(Endereco endereco) throws Exception {
 		Endereco createdAddress = this.enderecoRepository.createAddress(endereco);
 		dados.addRow(endereco.getModelObject());
 	}
 
 	public void patchAddress(Endereco endereco) throws Exception {
-
 		enderecoRepository.patchAddress(endereco, selectedRow, dados);
-		endereco.serialize(dados, selectedRow);
-
+		endereco.setDataOnSelectedRow(dados, selectedRow);
 	}
 
 	public void searchAddress(String searchParam) throws Exception {
@@ -55,7 +58,6 @@ public class EnderecoService {
 				dados.addRow(item.getModelObject());
 			}
 		}
-
 	}
 
 	public void deleteAddress(DefaultTableModel dados, int selectedRow) throws Exception {
@@ -75,16 +77,19 @@ public class EnderecoService {
 			null, msg, "Erro", JOptionPane.ERROR_MESSAGE
 		);
 	}
+
 	public void showWarningMessage(String msg) {
 		JOptionPane.showMessageDialog(
 			null, msg, "Aviso", JOptionPane.WARNING_MESSAGE
 		);
 	}
+
 	public void showMessage(String msg) {
 		JOptionPane.showMessageDialog(
 			null, msg, "Informação", JOptionPane.INFORMATION_MESSAGE
 		);
 	}
+
 	public int showConfirmationDialog(String msg){
 		return JOptionPane.showConfirmDialog(null, msg);
 	}
