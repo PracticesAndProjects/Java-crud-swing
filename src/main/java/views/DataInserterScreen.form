@@ -109,7 +109,7 @@
               <component id="211ec" class="javax.swing.JLabel">
                 <constraints border-constraint="North"/>
                 <properties>
-                  <text value="UF"/>
+                  <text value="UF - Max 3 caracteres"/>
                 </properties>
               </component>
               <component id="81448" class="javax.swing.JTextField" binding="ufField">
